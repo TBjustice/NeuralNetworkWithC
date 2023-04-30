@@ -39,8 +39,8 @@ void showLayerInfo(Layer_t* layer) {
 
 typedef struct Nodes {
 	size_t structSize;
-	Layer* in;
-	Layer* out;
+	Layer_t* in;
+	Layer_t* out;
 	void (*forward)(struct Nodes*);
 	void (*backward)(struct Nodes*);
 	void (*fit)(struct Nodes*, float l);
@@ -57,8 +57,8 @@ void copyBackward(Nodes_t* nodes) {
 		nodes->in->delta[i] = nodes->out->delta[i];
 	}
 }
-void initNodes(Nodes* dst, Layer* before, Layer* after) {
-	dst->structSize = sizeof(Nodes);
+void initNodes(Nodes_t* dst, Layer_t* before, Layer_t* after) {
+	dst->structSize = sizeof(Nodes_t);
 	dst->in = before;
 	dst->out = after;
 	dst->forward = copyForward;
@@ -70,11 +70,11 @@ void initNodes(Nodes* dst, Layer* before, Layer* after) {
 
 typedef struct DenseNodes {
 	size_t structSize;
-	Layer* in;
-	Layer* out;
+	Layer_t* in;
+	Layer_t* out;
 	void (*forward)(Nodes_t*);
 	void (*backward)(Nodes_t*);
-	void (*fit)(struct Nodes*, float l);
+	void (*fit)(Nodes_t*, float l);
 	float* parameter;
 	size_t parameterSize;
 } DenseNodes_t;
@@ -129,7 +129,7 @@ void denseFit(Nodes_t* buf, float l) {
 		weights[in->size] -= out->delta[i] * l;
 	}
 }
-void initDenseNodes(DenseNodes_t* dst, Layer* in, Layer* out) {
+void initDenseNodes(DenseNodes_t* dst, Layer_t* in, Layer_t* out) {
 	dst->structSize = sizeof(DenseNodes_t);
 	dst->in = in;
 	dst->out = out;
@@ -152,11 +152,11 @@ void initDenseNodes(DenseNodes_t* dst, Layer* in, Layer* out) {
 
 typedef struct ActivationNodes {
 	size_t structSize;
-	Layer* in;
-	Layer* out;
+	Layer_t* in;
+	Layer_t* out;
 	void (*forward)(Nodes_t*);
 	void (*backward)(Nodes_t*);
-	void (*fit)(struct Nodes*, float l);
+	void (*fit)(Nodes_t*, float l);
 	void (*func[2])(struct ActivationNodes*);
 } ActivationNodes_t;
 void activationForward(Nodes_t* buf) {
@@ -175,7 +175,7 @@ void activationBackward(Nodes_t* buf) {
 	ActivationNodes_t* activationnodes = (ActivationNodes_t*)buf;
 	activationnodes->func[1](activationnodes);
 }
-void initActivationNodes(ActivationNodes_t* dst, Layer* in, Layer* out, void (*func[2])(ActivationNodes_t*)) {
+void initActivationNodes(ActivationNodes_t* dst, Layer_t* in, Layer_t* out, void (*func[2])(ActivationNodes_t*)) {
 	if (in->size != out->size) {
 		UninitSafememoryAndExit();
 		return;
